@@ -3,31 +3,84 @@
 <head>
   <title>Mini Instagram</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    body{
+      font-family: Arial;
+      background:#fafafa;
+      margin:0;
+      display:flex;
+      justify-content:center;
+    }
+
+    .container{
+      width:400px;
+      padding:20px;
+    }
+
+    .card{
+      background:white;
+      padding:15px;
+      border-radius:10px;
+      box-shadow:0 2px 5px rgba(0,0,0,0.1);
+      margin-bottom:20px;
+    }
+
+    .post-img{
+      width:100%;
+      border-radius:10px;
+    }
+
+    .like{
+      cursor:pointer;
+      font-size:18px;
+    }
+
+    input,button{
+      width:100%;
+      padding:8px;
+      margin-bottom:10px;
+      border-radius:5px;
+      border:1px solid #ccc;
+    }
+
+    button{
+      background:#0095f6;
+      color:white;
+      border:none;
+    }
+
+  </style>
 </head>
+
 <body>
+
+<div class="container">
 
 <h2>Mini Instagram 🚀</h2>
 
-<!-- Login -->
-<input type="email" id="email" placeholder="Email"><br><br>
-<input type="password" id="password" placeholder="Password"><br><br>
+<input type="text" id="username" placeholder="Username">
+<input type="email" id="email" placeholder="Email">
+<input type="password" id="password" placeholder="Password">
 
 <button onclick="signup()">Sign Up</button>
 <button onclick="login()">Login</button>
 
 <hr>
 
-<!-- Upload -->
-<input type="file" id="fileInput"><br><br>
+<input type="file" id="fileInput">
+<input type="text" id="caption" placeholder="Write a caption...">
 <button onclick="uploadImage()">Upload</button>
 
 <hr>
 
 <div id="gallery"></div>
 
+</div>
+
 <script type="module">
 
-// 🔥 Firebase
+// Firebase
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword }
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
@@ -36,16 +89,12 @@ const firebaseConfig = {
   apiKey: "AIzaSyDcZnUuqjD7lDHLj65V-f3E75w4DsSFQ1s",
   authDomain: "mini-instagram-2.firebaseapp.com",
   projectId: "mini-instagram-2",
-  storageBucket: "mini-instagram-2.firebasestorage.app",
-  messagingSenderId: "974084882408",
-  appId: "1:974084882408:web:71d08fb5c20cd80440ee5d",
-  measurementId: "G-9B8M8C72R2"
 };
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
-// 🔥 Supabase
+// Supabase
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 
 const supabaseUrl = "https://hotvdwvahuotmkrzqlvw.supabase.co";
@@ -55,19 +104,24 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Sign Up
 window.signup = async function(){
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
+  const email = email.value;
+  const password = password.value;
+  const usernameValue = username.value;
 
   await createUserWithEmailAndPassword(auth, email, password);
+
+  localStorage.setItem("username", usernameValue);
+
   alert("Account Created ✅");
 }
 
 // Login
 window.login = async function(){
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
+  const emailValue = email.value;
+  const passwordValue = password.value;
 
-  await signInWithEmailAndPassword(auth, email, password);
+  await signInWithEmailAndPassword(auth, emailValue, passwordValue);
+
   alert("Login Success ✅");
 }
 
@@ -75,22 +129,19 @@ window.login = async function(){
 window.uploadImage = async function(){
 
   const file = document.getElementById("fileInput").files[0];
+  const captionValue = document.getElementById("caption").value;
+  const usernameValue = localStorage.getItem("username");
 
   if(!file){
-    alert("Select file first");
+    alert("Select file");
     return;
   }
 
   const fileName = Date.now() + "-" + file.name;
 
-  const { error } = await supabase.storage
+  await supabase.storage
     .from("images")
     .upload(fileName, file);
-
-  if(error){
-    alert(error.message);
-    return;
-  }
 
   const { data } = supabase
     .storage
@@ -99,10 +150,21 @@ window.uploadImage = async function(){
 
   const imageUrl = data.publicUrl;
 
-  document.getElementById("gallery").innerHTML +=
-    `<img src="${imageUrl}" width="100%" style="margin-bottom:10px;">`;
+  document.getElementById("gallery").innerHTML += `
+    <div class="card">
+      <strong>@${usernameValue}</strong>
+      <img src="${imageUrl}" class="post-img">
+      <p>${captionValue}</p>
+      <span class="like" onclick="likePost(this)">❤️ 0</span>
+    </div>
+  `;
+}
 
-  alert("Upload Successful 🚀");
+// Like system
+window.likePost = function(el){
+  let count = parseInt(el.innerText.split(" ")[1]);
+  count++;
+  el.innerText = "❤️ " + count;
 }
 
 </script>
