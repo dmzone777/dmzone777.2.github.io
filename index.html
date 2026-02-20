@@ -5,46 +5,111 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
+
+/* ===== Animated Gradient BG ===== */
 body{
 margin:0;
-font-family:Arial;
-background:linear-gradient(135deg,#667eea,#764ba2);
+font-family:Poppins,Arial;
+background:linear-gradient(-45deg,#667eea,#764ba2,#6a11cb,#2575fc);
+background-size:400% 400%;
+animation:bgMove 10s ease infinite;
 display:flex;
 justify-content:center;
 align-items:center;
 height:100vh;
 }
 
-.card{
-background:white;
-padding:20px;
-border-radius:15px;
-width:360px;
-box-shadow:0 10px 25px rgba(0,0,0,0.2);
-text-align:center;
+@keyframes bgMove{
+0%{background-position:0% 50%;}
+50%{background-position:100% 50%;}
+100%{background-position:0% 50%;}
 }
 
+/* ===== Glass Card ===== */
+.card{
+background:rgba(255,255,255,0.15);
+backdrop-filter:blur(15px);
+padding:22px;
+border-radius:20px;
+width:360px;
+box-shadow:0 20px 40px rgba(0,0,0,0.35);
+text-align:center;
+color:white;
+border:1px solid rgba(255,255,255,0.2);
+}
+
+/* ===== Video ===== */
 video{
 width:100%;
-border-radius:10px;
-margin-top:10px;
+border-radius:12px;
+margin-top:12px;
+box-shadow:0 8px 18px rgba(0,0,0,0.3);
 }
 
+/* ===== Inputs & Buttons ===== */
 button,input{
 width:100%;
-padding:10px;
-margin-top:10px;
-border-radius:8px;
-border:1px solid #ddd;
+padding:11px;
+margin-top:12px;
+border-radius:10px;
+border:none;
+outline:none;
+font-size:14px;
 }
 
-button{
-background:#667eea;
+/* ===== File input ===== */
+input[type=file]{
+background:rgba(255,255,255,0.2);
 color:white;
-border:none;
-font-weight:bold;
 cursor:pointer;
 }
+
+/* ===== Buttons ===== */
+button{
+background:linear-gradient(45deg,#ff6ec4,#7873f5);
+color:white;
+font-weight:bold;
+cursor:pointer;
+transition:.3s;
+box-shadow:0 5px 15px rgba(0,0,0,0.3);
+}
+
+button:hover{
+transform:translateY(-3px) scale(1.02);
+box-shadow:0 10px 25px rgba(0,0,0,0.4);
+}
+
+/* ===== Slider style ===== */
+input[type=range]{
+appearance:none;
+height:7px;
+background:rgba(255,255,255,0.3);
+}
+
+input[type=range]::-webkit-slider-thumb{
+appearance:none;
+width:18px;
+height:18px;
+border-radius:50%;
+background:#fff;
+cursor:pointer;
+box-shadow:0 0 10px rgba(255,255,255,0.9);
+}
+
+/* ===== Label ===== */
+label{
+font-size:13px;
+margin-top:6px;
+display:block;
+opacity:0.9;
+}
+
+/* ===== Heading glow ===== */
+h2{
+margin:0;
+text-shadow:0 0 10px rgba(255,255,255,0.7);
+}
+
 </style>
 </head>
 
@@ -90,7 +155,6 @@ video.playbackRate=v;
 speed.value=v;
 }
 
-// trim preview
 video.addEventListener("timeupdate",()=>{
 if(video.duration){
 const endTime=(end.value/100)*video.duration;
