@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Ultimate SlowMo Editor</title>
+<title>Ultra Smooth SlowMo Master</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
@@ -51,7 +51,7 @@ cursor:pointer;
 <body>
 
 <div class="card">
-<h2>Ultimate SlowMo Editor 🎬</h2>
+<h2>Ultra Smooth SlowMo 🎬</h2>
 
 <input type="file" id="videoInput" accept="video/*">
 <video id="video" controls loop></video>
@@ -90,7 +90,7 @@ video.playbackRate=v;
 speed.value=v;
 }
 
-// trim playback preview
+// trim preview
 video.addEventListener("timeupdate",()=>{
 if(video.duration){
 const endTime=(end.value/100)*video.duration;
@@ -105,7 +105,7 @@ const ctx=canvas.getContext("2d");
 canvas.width=video.videoWidth;
 canvas.height=video.videoHeight;
 
-const stream=canvas.captureStream(60);
+const stream=canvas.captureStream(90);
 const recorder=new MediaRecorder(stream);
 let chunks=[];
 
@@ -114,34 +114,40 @@ recorder.onstop=e=>{
 const blob=new Blob(chunks,{type:"video/webm"});
 const a=document.createElement("a");
 a.href=URL.createObjectURL(blob);
-a.download="slowmo.mp4"; // mp4 rename trick
+a.download="slowmo.mp4";
 a.click();
 }
 
 recorder.start();
 
 video.currentTime=(start.value/100)*video.duration;
+video.playbackRate=speed.value*0.8;
 video.play();
 
 let lastFrame=null;
 
 function draw(){
-ctx.globalAlpha=0.5;
+ctx.globalAlpha=0.35;
 if(lastFrame) ctx.drawImage(lastFrame,0,0,canvas.width,canvas.height);
 
 ctx.globalAlpha=0.85;
+ctx.filter="blur(0.3px)";
 ctx.drawImage(video,0,0,canvas.width,canvas.height);
-ctx.globalAlpha=1;
+ctx.filter="none";
 
 lastFrame=document.createElement("canvas");
 lastFrame.width=canvas.width;
 lastFrame.height=canvas.height;
 lastFrame.getContext("2d").drawImage(canvas,0,0);
 
+ctx.globalAlpha=0.25;
+ctx.drawImage(video,0,0,canvas.width,canvas.height);
+ctx.globalAlpha=1;
+
 const endTime=(end.value/100)*video.duration;
 
 if(!video.paused && !video.ended && video.currentTime<endTime){
-setTimeout(()=>requestAnimationFrame(draw),1000/60);
+setTimeout(()=>requestAnimationFrame(draw),1000/90);
 }else{
 recorder.stop();
 }
