@@ -2,106 +2,62 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Ultra GLTF Optimizer</title>
-
-<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/loaders/GLTFLoader.js"></script>
-
-<script src="https://unpkg.com/@gltf-transform/core/dist/index.umd.js"></script>
-<script src="https://unpkg.com/@gltf-transform/functions/dist/index.umd.js"></script>
+<title>Ultra GLTF Compressor</title>
 
 <style>
 
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-font-family:Segoe UI;
-}
-
 body{
-height:100vh;
-background:linear-gradient(135deg,#0f172a,#020617);
-display:flex;
-align-items:center;
-justify-content:center;
+font-family:Arial;
+background:linear-gradient(135deg,#020617,#0f172a);
 color:white;
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+margin:0;
 }
 
-.container{
+.card{
 
 width:420px;
 padding:25px;
 
 background:rgba(255,255,255,0.05);
-backdrop-filter:blur(15px);
+backdrop-filter:blur(10px);
+
 border-radius:15px;
-
-box-shadow:
-0 0 30px rgba(0,0,0,0.5),
-inset 0 0 15px rgba(255,255,255,0.05);
-
 text-align:center;
+
+box-shadow:0 0 25px rgba(0,0,0,0.6);
+
 }
 
-h1{
-font-size:22px;
+h2{
 margin-bottom:15px;
 }
 
-#viewer{
-width:100%;
-height:220px;
-background:black;
-border-radius:10px;
-margin-bottom:15px;
-}
-
-.drop{
-border:2px dashed #38bdf8;
-padding:20px;
-border-radius:10px;
-cursor:pointer;
-margin-bottom:15px;
-}
-
-.drop:hover{
-background:rgba(56,189,248,0.1);
-}
-
-select{
-width:100%;
-padding:8px;
-border-radius:8px;
-border:none;
-margin-bottom:15px;
+input{
+margin:10px 0;
 }
 
 button{
 
 width:100%;
 padding:12px;
-margin-top:8px;
+margin-top:10px;
 
 border:none;
 border-radius:10px;
 
+background:linear-gradient(90deg,#22c55e,#4ade80);
 font-size:15px;
 cursor:pointer;
 
-background:linear-gradient(90deg,#22c55e,#4ade80);
-color:black;
-font-weight:bold;
 }
 
-button:hover{
-transform:scale(1.03);
-}
-
-#downloadBtn{
+#download{
 display:none;
 background:linear-gradient(90deg,#3b82f6,#60a5fa);
-color:white;
 }
 
 .stat{
@@ -111,31 +67,35 @@ color:#94a3b8;
 }
 
 </style>
+
+<script src="https://unpkg.com/@gltf-transform/core/dist/index.umd.js"></script>
+<script src="https://unpkg.com/@gltf-transform/functions/dist/index.umd.js"></script>
+<script src="https://unpkg.com/@gltf-transform/extensions/dist/index.umd.js"></script>
+
 </head>
 
 <body>
 
-<div class="container">
+<div class="card">
 
-<h1>Ultra GLTF Optimizer</h1>
+<h2>Ultra GLTF Compressor</h2>
 
-<div id="viewer"></div>
+<input type="file" id="file">
 
-<div class="drop" id="drop">
-Drop GLTF / GLB Here
-<br><br>
-<input type="file" id="fileInput">
-</div>
+<br>
+
+<label>Texture Size</label>
 
 <select id="tex">
-<option value="2048">Texture 2048</option>
-<option value="1024">Texture 1024</option>
-<option value="512">Texture 512</option>
+<option value="2048">2048</option>
+<option value="1024">1024</option>
+<option value="512">512</option>
+<option value="256">256</option>
 </select>
 
-<button onclick="optimize()">Optimize Model</button>
+<button onclick="compress()">Compress Model</button>
 
-<button id="downloadBtn" onclick="downloadModel()">Download Optimized Model</button>
+<button id="download" onclick="download()">Download</button>
 
 <div class="stat" id="before"></div>
 <div class="stat" id="after"></div>
@@ -144,109 +104,65 @@ Drop GLTF / GLB Here
 
 <script>
 
-let file;
-let optimizedBlob;
+let file
+let outputBlob
 
-document.getElementById("fileInput").onchange=e=>{
-file=e.target.files[0];
-preview(file);
-};
-
-const drop=document.getElementById("drop");
-
-drop.ondragover=e=>e.preventDefault();
-
-drop.ondrop=e=>{
-e.preventDefault();
-file=e.dataTransfer.files[0];
-preview(file);
-};
-
-function preview(f){
-
-const url=URL.createObjectURL(f);
-
-const scene=new THREE.Scene();
-const camera=new THREE.PerspectiveCamera(75,1,0.1,1000);
-
-const renderer=new THREE.WebGLRenderer({antialias:true});
-renderer.setSize(300,200);
-
-document.getElementById("viewer").innerHTML="";
-document.getElementById("viewer").appendChild(renderer.domElement);
-
-const loader=new THREE.GLTFLoader();
-
-loader.load(url,function(gltf){
-
-scene.add(gltf.scene);
-
-camera.position.z=3;
-
-function animate(){
-
-requestAnimationFrame(animate);
-
-gltf.scene.rotation.y+=0.01;
-
-renderer.render(scene,camera);
-
+document.getElementById("file").onchange=e=>{
+file=e.target.files[0]
 }
 
-animate();
-
-});
-
-}
-
-async function optimize(){
+async function compress(){
 
 if(!file){
-alert("Upload model first");
-return;
+alert("Upload model first")
+return
 }
 
-const before=(file.size/1024/1024).toFixed(2);
-document.getElementById("before").innerText="Original Size: "+before+" MB";
+const before=(file.size/1024/1024).toFixed(2)
 
-const buffer=await file.arrayBuffer();
+document.getElementById("before").innerText=
+"Original Size: "+before+" MB"
 
-const {NodeIO}=gltfTransformCore;
-const {dedup, textureResize, prune}=gltfTransformFunctions;
+const buffer=await file.arrayBuffer()
 
-const io=new NodeIO();
+const {NodeIO}=gltfTransformCore
+const {dedup, prune, textureResize}=gltfTransformFunctions
 
-const doc=io.readBinary(new Uint8Array(buffer));
+const io=new NodeIO()
 
-const tex=parseInt(document.getElementById("tex").value);
+const doc=io.readBinary(new Uint8Array(buffer))
+
+const tex=parseInt(document.getElementById("tex").value)
 
 await doc.transform(
 dedup(),
-textureResize({size:[tex,tex]}),
-prune()
-);
+prune(),
+textureResize({size:[tex,tex]})
+)
 
-const result=io.writeBinary(doc);
+const result=io.writeBinary(doc)
 
-optimizedBlob=new Blob([result],{type:"model/gltf-binary"});
+outputBlob=new Blob([result],{type:"model/gltf-binary"})
 
-const after=(optimizedBlob.size/1024/1024).toFixed(2);
-document.getElementById("after").innerText="Optimized Size: "+after+" MB";
+const after=(outputBlob.size/1024/1024).toFixed(2)
 
-document.getElementById("downloadBtn").style.display="block";
+document.getElementById("after").innerText=
+"Compressed Size: "+after+" MB"
+
+document.getElementById("download").style.display="block"
 
 }
 
-function downloadModel(){
+function download(){
 
-const url=URL.createObjectURL(optimizedBlob);
+const url=URL.createObjectURL(outputBlob)
 
-const a=document.createElement("a");
+const a=document.createElement("a")
 
-a.href=url;
-a.download="optimized-model.glb";
+a.href=url
+a.download="compressed.glb"
 
-a.click();
+a.click()
 
 }
 
